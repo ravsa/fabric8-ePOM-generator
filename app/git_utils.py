@@ -8,14 +8,6 @@ import logging
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# create a logging format
-handler = logging.StreamHandler()
-formatter = logging.Formatter(
-    '[%(asctime)s - %(name)s]: %(module)s - %(funcName)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 
 class GitServices:
@@ -51,6 +43,7 @@ class GitServices:
 
     def validate_repo(self, url, fetch_repo_only=False):
         """Docstring for validate_repo."""
+        logger.info("input repo for validate_repo is {}".format(url))
         try:
             if not url:
                 raise ValueError('Not a valid Repository "{}"'.format(url))
@@ -62,10 +55,10 @@ class GitServices:
                 # look into the user Github Space if only repo name provided.
                 return '/'.join([self.github_user] + _temp)
             org, repo = _temp[-2:]
-
+            logger.info(
+                "extracted org and repo is `{}` `{}`".format(org, repo))
             if fetch_repo_only:
                 return [repo]
-
             org = org.split(':')[-1]
             return '/'.join([org, repo])
 
