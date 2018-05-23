@@ -23,7 +23,7 @@ class AmazonS3:
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, bucket_name=None,
                  region_name=None, endpoint_url=None, use_ssl=False, encryption=None,
-                 versioned=None, local_dev=True):
+                 versioned=None, local_dev=False):
         """Initialize object, setup connection to the AWS S3."""
         self._s3 = None
 
@@ -38,7 +38,7 @@ class AmazonS3:
         self._local_dev = local_dev
         # let boto3 decide if we don't have local development proper values
         self._endpoint_url = self._DEFAULT_LOCAL_ENDPOINT
-        self._use_ssl = False
+        self._use_ssl = True
         # 'encryption' (argument) might be False - means don't encrypt
         self.encryption = self._DEFAULT_ENCRYPTION if encryption is None else encryption
         self.versioned = self._DEFAULT_VERSIONED if versioned is None else versioned
@@ -73,9 +73,13 @@ class AmazonS3:
                                             aws_secret_access_key=self._aws_secret_access_key,
                                             region_name=self.region_name)
             # signature version is needed to connect to new regions which support only v4
-            self._s3 = session.resource('s3', config=botocore.client.Config(
-                signature_version='s3v4'),
-                use_ssl=self._use_ssl, endpoint_url=self._endpoint_url)
+            if self._local_dev:
+                self._s3 = session.resource('s3', config=botocore.client.Config(
+                    signature_version='s3v4'),
+                    use_ssl=self._use_ssl, endpoint_url=self._endpoint_url)
+            else:
+                self._s3 = session.resource('s3', config=botocore.client.Config(
+                    signature_version='s3v4'), use_ssl=self._use_ssl)
             logger.info("Conneting to the s3")
         except Exception as exc:
             logger.info(
