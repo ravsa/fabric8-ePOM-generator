@@ -20,19 +20,19 @@ def generate_epom(pom):
         ifile.flush()
         ifile.seek(0)
         cmd = cmd.format(ipath=ifile.name, opath=ofile.name)
+        logger.info('RUNNING CMD: {}'.format(cmd))
         try:
             process = subprocess.Popen(
                 shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             while True:
-                output = process.stdout.readline()
-                error = process.stderr.readline()
-                if (not output and not error) and process.poll() is not None:
+                output = process.stdout.readline() or process.stderr.readline()
+                if not output and process.poll() is not None:
                     break
-                if error:
-                    logger.error(error.strip())
+                #  if error:
+                #      logger.error(error.strip())
                 if output:
                     logger.info(output.strip())
-            return ofile.read()
+            return process.poll(), ofile.read()
         except Exception as e:
             logger.error(
                 "Can't Run the command `{}` \n ERROR: {} ".format(cmd, str(e)))
