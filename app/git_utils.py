@@ -1,10 +1,11 @@
-"""Github utility functions."""
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from github import GithubException, Github, BadCredentialsException
+"""Github utilities."""
+from github import Github, BadCredentialsException
 from datetime import datetime
 import logging
+import os
 
 
 logger = logging.getLogger(__name__)
@@ -13,14 +14,18 @@ logger = logging.getLogger(__name__)
 class GitServices:
     """Docstring for GitServices."""
 
-    def __init__(self, access_token):
+    def __init__(self, access_token=None):
         """Docstring for __init__."""
-        self.access_token = access_token
+        self.access_token = access_token or os.getenv("GITHUB_ACCESS_TOKEN")
+        if not self.access_token:
+            raise ValueError("Github Access Token not provided")
         self.github_object = Github(self.access_token)
         try:
             self.github_user = self.github_object.get_user().login
         except BadCredentialsException:
             logger.error("Invalid github access token")
+        except Exception as e:
+            logger.error("An Exception occurred \n {}".format(str(e)))
 
     def get_last_modified_date(self, repo, org=None):
         """Docstring for get_last_modified_date."""
@@ -34,9 +39,9 @@ class GitServices:
             self.repo.archive_url))
         return datetime.strptime(self.repo.last_modified, "%a, %d %b %Y %H:%M:%S GMT")
 
-    def is_modified_in_days(self, repo, day=1, org=None):
+    def is_modified_in_days(self, repo, days=1, org=None):
         """Docstring for get_last_modified_date."""
-        if (datetime.now() - self.get_last_modified_date(repo, org)).days <= day:
+        if (datetime.now() - self.get_last_modified_date(repo, org)).days <= days:
             return True
         else:
             return False
@@ -64,4 +69,4 @@ class GitServices:
 
         except Exception as e:
             logger.error(
-                'An Exception occured while validating repo `{}`'.format(str(e)))
+                'An Exception occurred while validating repo `{}`'.format(str(e)))
