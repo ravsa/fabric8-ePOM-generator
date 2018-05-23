@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """Github utilities."""
-from github import Github, BadCredentialsException
+from github import Github, BadCredentialsException, RateLimitExceededException, GithubException
 from datetime import datetime
 import logging
 import os
@@ -70,3 +70,25 @@ class GitServices:
         except Exception as e:
             logger.error(
                 'An Exception occurred while validating repo `{}`'.format(str(e)))
+
+    def fetch_file_from_github_release(self, repo=None, filename="pom.xml", ref=None):
+        """Return file content from github release."""
+        try:
+            if repo:
+                self.repo = self.github_object.get_repo(self.validate_repo(repo))
+            if ref:
+                file_content = self.repo.get_file_contents(
+                    filename, ref).decoded_content
+            else:
+                file_content = self.repo.get_file_contents(
+                    filename).decoded_content
+            return file_content.decode('utf-8')
+        except RateLimitExceededException:
+            logger.error("Github API rate limit exceeded")
+        except BadCredentialsException:
+            logger.error("Invalid github access token")
+        except GithubException as e:
+            logger.error('Github repository or file {} does not exist {}'.format(filename, str(e)))
+        except Exception as e:
+            logger.error('An Exception occured while fetching file github release {}'
+                         .format(str(e)))

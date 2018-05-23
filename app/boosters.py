@@ -32,17 +32,19 @@ class Boosters:
         """Docstring for __iter__ method."""
         for _file in self._zip.infolist():
             if str(_file).find('booster.yaml') != -1 or str(_file).find('common.yaml') != -1:
-                with self._zip.open(_file) as yaml_file:
-                    data = yaml.safe_load(yaml_file)
-                    source = data.get("source", {})
-                    git = source.get('git', {})
-                    env = data.get('environment', {})
-                    url = git.get('url')
-                    if url:
-                        for item in env.values():
-                            _source = item.get('source', {})
-                            _git = _source.get('git', {})
-                            _ref = _git.get('ref')
-                            yield (url, _ref)
-                        ref = git.get('ref')
-                        yield (url, ref)
+                #  skip nodejs boosters
+                if str(_file).find('nodejs') == -1:
+                    with self._zip.open(_file) as yaml_file:
+                        data = yaml.safe_load(yaml_file)
+                        source = data.get("source", {})
+                        git = source.get('git', {})
+                        env = data.get('environment', {})
+                        url = git.get('url')
+                        if url:
+                            for item in env.values():
+                                _source = item.get('source', {})
+                                _git = _source.get('git', {})
+                                _ref = _git.get('ref')
+                                yield (url, _ref)
+                            ref = git.get('ref')
+                            yield (url, ref)
