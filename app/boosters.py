@@ -1,6 +1,7 @@
-"""Collect boosters from booster catalog."""
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+"""Collect boosters from booster catalog."""
 
 from io import BytesIO
 from requests import get
@@ -8,7 +9,6 @@ import zipfile
 import yaml
 import os
 import logging
-
 
 logger = logging.getLogger(__name__)
 
