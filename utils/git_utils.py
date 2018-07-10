@@ -4,7 +4,10 @@
 """Github utilities."""
 from github import Github, BadCredentialsException, RateLimitExceededException, GithubException
 from datetime import datetime
+from io import BytesIO
+import zipfile
 import logging
+from requests import get
 import os
 
 
@@ -75,7 +78,8 @@ class GitServices:
         """Return file content from github release."""
         try:
             if repo:
-                self.repo = self.github_object.get_repo(self.validate_repo(repo))
+                self.repo = self.github_object.get_repo(
+                    self.validate_repo(repo))
             if ref:
                 file_content = self.repo.get_file_contents(
                     filename, ref).decoded_content
@@ -88,7 +92,23 @@ class GitServices:
         except BadCredentialsException:
             logger.error("Invalid github access token")
         except GithubException as e:
-            logger.error('Github repository or file {} does not exist {}'.format(filename, str(e)))
+            logger.error(
+                'Github repository or file {} does not exist {}'.format(filename, str(e)))
         except Exception as e:
             logger.error('An Exception occured while fetching file github release {}'
                          .format(str(e)))
+
+    def clone_repo_from_github_release(self, repo, ref='master'):
+        """Docstring for fetch_repo_zip_from_github_release."""
+        _base_url = 'https://github.com/{repo}/archive/{ref}.zip'
+        self.repo = self.validate_repo(repo)
+        _url = _base_url.format(repo=self.repo, ref=ref)
+        self.resp = get(_url, stream=True)
+        if self.resp.status_code != 200:
+            logger.error("Unable to access url {} \n STATUS_CODE={}".format(
+                _url, self.resp.status_code))
+        else:
+            logger.info("successfully fetched booster {repo} with ref {ref}"
+                        .format(repo=self.repo, ref=ref))
+            self._zip = zipfile.ZipFile(BytesIO(self.resp.content))
+        return self.repo.split('/')[1], self._zip

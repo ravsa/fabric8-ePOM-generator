@@ -5,7 +5,7 @@
 
 from .git_utils import GitServices
 from .boosters import Boosters
-from .generate_epom import generate_epom
+from .generate_epom import generate_epom, generate_epom_locally
 from .s3_process import AmazonS3
 import logging
 import coloredlogs

@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 
 """Docstring for run.py."""
-from utils import GitServices, AmazonS3, Boosters, generate_epom
+from utils import GitServices, AmazonS3, Boosters, generate_epom, generate_epom_locally
 import hashlib
 import logging
 import coloredlogs
+import shutil
+import glob
 
 coloredlogs.install(
     fmt='[%(asctime)s - %(name)s][%(levelname)s]: %(module)s - %(funcName)s - %(message)s')
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.ERROR)
 
 delay = __import__('time').sleep
 
@@ -31,4 +33,24 @@ for repo, ref in boosters:
         if status == 0:
             logger.info("epom for content generated")
             s3.store_blob(epom, hash_obj)
+        else:
+            try:
+                ref = ref or 'master'
+                _repo, content_zip = git_service.clone_repo_from_github_release(
+                    repo=repo, ref=ref)
+                temp_dir = '/tmp'
+                content_zip.extractall(temp_dir)
+                dir_name = glob.glob(temp_dir + '/' + _repo + '*')[0]
+                logger.info("repo is extracted dir: {}".format(dir_name))
+                status, epom = generate_epom_locally(dir_name)
+                if status == 0:
+                    logger.info("epom for content generated")
+                    s3.store_blob(epom, hash_obj)
+                else:
+                    logger.info("Unable to generate_epom for {}".format(dir_name))
+            except Exception as exc:
+                logger.error(exc)
+            finally:
+                shutil.rmtree(dir_name)
+                logger.info("repo {} is removed".format(dir_name))
     delay(2)
