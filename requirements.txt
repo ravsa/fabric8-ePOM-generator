@@ -23,4 +23,4 @@ sh==1.12.14
 six==1.11.0
 smmap2==2.0.3
 urllib3==1.22
-Werkzeug==0.14.1
+Werkzeug==0.15.3
