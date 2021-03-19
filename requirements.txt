@@ -10,7 +10,7 @@ GitPython==2.1.10
 humanfriendly==4.12.1
 idna==2.6
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 jmespath==0.9.3
 MarkupSafe==1.0
 PyGithub==1.39
